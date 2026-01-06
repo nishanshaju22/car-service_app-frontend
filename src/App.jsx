@@ -9,6 +9,7 @@ import AddCarPage from './pages/AddCarPage';
 import EditCarPage from './pages/EditCarPage';
 import ServiceCentersPage from './pages/ServiceCentersPage';
 import MaintenancePage from './pages/MaintenancePage';
+import CarInfoPage from './pages/CarInfoPage';
 
 
 function App() {
@@ -39,6 +40,12 @@ function App() {
         <Route path="/cars/edit/:id" element={
             <ProtectedRoute>
               <EditCarPage />
+            </ProtectedRoute> 
+          }  
+        />
+        <Route path="/car/:carId" element={
+            <ProtectedRoute>
+              <CarInfoPage />
             </ProtectedRoute> 
           }  
         />
