@@ -105,7 +105,10 @@ const MaintenanceTable = ({ maintenance, isLoading, error }) => {
                 Priority
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700">
-                Mileage
+                Surviced At
+              </th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700">
+                Recommended Mileage
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700">
                 Date
@@ -148,7 +151,12 @@ const MaintenanceTable = ({ maintenance, isLoading, error }) => {
                 </td>
                 <td className="px-6 py-4">
                   <p className="text-sm text-gray-900 font-medium">
-                    {item.scheduledMileage || item.mileageAtService || 'N/A'} km
+                    {item.mileageAtService || 'N/A'} km
+                  </p>
+                </td>
+                <td className="px-6 py-4">
+                  <p className="text-sm text-gray-900 font-medium">
+                    {item.scheduledMileage || 'N/A'} km
                   </p>
                 </td>
                 <td className="px-6 py-4">
