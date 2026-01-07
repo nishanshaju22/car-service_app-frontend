@@ -109,24 +109,26 @@ const MaintenancePage = () => {
 		setModalOpen(true);
 	};
 
-	const handleConfirmComplete = async (service) => {
+	const handleConfirmComplete = async (payload) => {
 		if (!currentService) return;
 
 		try {
 			await maintenanceApi.addToMaintenance({
 				carId: selectedCar.id,
 				servId: currentService.service.id,
-				mileage: Number(currentService.mileage),
-				mileageServicedAt: Number(service.mileageAtService),
-				cost: Number(service.cost),
-				status: 'COMPLETED',
+				mileage: Number(payload.mileage),
+				mileageServicedAt: payload.mileageServicedAt || null,
+				cost: payload.cost || 0,
+				status: payload.status,
+				scheduledDate: new Date(payload.scheduledAt) || null,
 			});
+
 			setModalOpen(false);
 			setCurrentService(null);
 			await fetchServices();
 			await fetchMaintenanceData();
 		} catch (error) {
-			console.error('Failed to complete service:', error);
+			console.error('Failed to submit service:', error);
 		}
 	};
 
