@@ -109,7 +109,7 @@ const MaintenancePage = () => {
 		setModalOpen(true);
 	};
 
-	const handleConfirmComplete = async (mileageServicedAt, cost) => {
+	const handleConfirmComplete = async (service) => {
 		if (!currentService) return;
 
 		try {
@@ -117,8 +117,8 @@ const MaintenancePage = () => {
 				carId: selectedCar.id,
 				servId: currentService.service.id,
 				mileage: Number(currentService.mileage),
-				mileageServicedAt: Number(mileageServicedAt),
-				cost: Number(cost),
+				mileageServicedAt: Number(service.mileageAtService),
+				cost: Number(service.cost),
 				status: 'COMPLETED',
 			});
 			setModalOpen(false);

@@ -8,6 +8,7 @@ export const maintenanceApi = {
 
     addToMaintenance: async (maintenanceData) => {
         const response = await api.post(`/maintenance/add`, maintenanceData);
+        console.log(response)
         return response.data;
     },
 
