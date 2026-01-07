@@ -7,72 +7,144 @@ import StatCard from '../components/StatCard';
 import MaintenanceTable from '../components/MaintenanceTable';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { useSelectedCar } from '../context/SelectedCarContext';
+import ServicesDueRow from '../components/ServicesDueRow';
+import CompleteServiceModal from '../components/CompleteServiceModal';
 
 const MaintenancePage = () => {
-  const navigate = useNavigate();
-  const ACCENT = '#2C0703';
+	const navigate = useNavigate();
+	const ACCENT = '#2C0703';
 
-  const { selectedCar, setSelectedCar } = useSelectedCar();
+	const { selectedCar, setSelectedCar } = useSelectedCar();
 
-  const [maintenance, setMaintenance] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [cars, setCars] = useState([]);
-  const [carsLoading, setCarsLoading] = useState(true);
-  const [carsError, setCarsError] = useState('');
+	const [maintenance, setMaintenance] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState('');
+	const [cars, setCars] = useState([]);
+	const [carsLoading, setCarsLoading] = useState(true);
+	const [carsError, setCarsError] = useState('');
+	const [servicesDue, setServicesDue] = useState({});
+	const [modalOpen, setModalOpen] = useState(false);
+	const [currentService, setCurrentService] = useState(null);
 
   // Check if car is selected on mount
-  useEffect(() => {
-    if (!selectedCar?.id) {
-      // Fetch available cars
-      fetchAvailableCars();
-    } else {
-      // Fetch maintenance data
-      fetchMaintenanceData();
-    }
-  }, [selectedCar?.id]);
+	useEffect(() => {
+		if (!selectedCar?.id) {
+			fetchAvailableCars();
+		} else {
+			fetchMaintenanceData();
+			fetchServices();
+		}
+	}, [selectedCar?.id]);
 
-  const fetchAvailableCars = async () => {
-    setCarsLoading(true);
-    setCarsError('');
-    try {
-      const data = await carApi.getCars();
-      setCars(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setCarsError(err.response?.data?.error || 'Failed to fetch cars');
-      setCars([]);
-    } finally {
-      setCarsLoading(false);
-    }
-  };
+	const fetchServices = async () => {
+		setLoading(true);
+		try {
+			const data = await maintenanceApi.findServices(
+				selectedCar.id,
+				selectedCar.currentMileage
+			);
+			setServicesDue(data || {});
+		} catch (error) {
+			setServicesDue({});
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  const fetchMaintenanceData = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await maintenanceApi.getMaintenanceInfo(selectedCar.id);
-      setMaintenance(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch maintenance data');
-      setMaintenance([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+	const fetchAvailableCars = async () => {
+		setCarsLoading(true);
+		setCarsError('');
+		try {
+			const data = await carApi.getCars();
+			setCars(Array.isArray(data) ? data : []);
+		} catch (err) {
+			setCarsError(err.response?.data?.error || 'Failed to fetch cars');
+			setCars([]);
+		} finally {
+			setCarsLoading(false);
+		}
+	};
 
-  const handleSelectCar = (car) => {
-    setSelectedCar(car);
-  };
+	const fetchMaintenanceData = async () => {
+		setLoading(true);
+		setError('');
+		try {
+			const data = await maintenanceApi.getMaintenanceInfo(selectedCar.id);
+			setMaintenance(Array.isArray(data) ? data : []);
+		} catch (err) {
+			setError(err.response?.data?.error || 'Failed to fetch maintenance data');
+			setMaintenance([]);
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  // Calculate stats
-  const stats = {
-    completed: maintenance.filter((m) => m.status === 'COMPLETED').length,
-    scheduled: maintenance.filter((m) => m.status === 'SCHEDULED').length,
-    overdue: maintenance.filter((m) => m.status === 'OVERDUE').length,
-    skipped: maintenance.filter((m) => m.status === 'SKIPPED').length,
-  };
+  // ----------------------
+  // HANDLE SKIP
+  // ----------------------
+	const handleSkip = async (service, mileage) => {
+		try {
+			await maintenanceApi.addToMaintenance({
+				carId: selectedCar.id,
+				servId: service.id,
+				mileage: Number(mileage),
+				mileageServicedAt: selectedCar.currentMileage,
+				cost: 0,
+				status: 'SKIPPED',
+			});
+			// refresh services and maintenance
+			await fetchServices();
+			await fetchMaintenanceData();
+		} catch (error) {
+			console.error('Failed to skip service:', error);
+		}
+	};
 
+  // ----------------------
+  // HANDLE COMPLETE
+  // ----------------------
+	const handleComplete = (service, mileage) => {
+		// open modal for entering mileageServicedAt and cost
+		setCurrentService({ service, mileage });
+		setModalOpen(true);
+	};
+
+	const handleConfirmComplete = async (mileageServicedAt, cost) => {
+		if (!currentService) return;
+
+		try {
+			await maintenanceApi.addToMaintenance({
+				carId: selectedCar.id,
+				servId: currentService.service.id,
+				mileage: Number(currentService.mileage),
+				mileageServicedAt: Number(mileageServicedAt),
+				cost: Number(cost),
+				status: 'COMPLETED',
+			});
+			setModalOpen(false);
+			setCurrentService(null);
+			await fetchServices();
+			await fetchMaintenanceData();
+		} catch (error) {
+			console.error('Failed to complete service:', error);
+		}
+	};
+
+	const handleSelectCar = (car) => {
+		setSelectedCar(car);
+	};
+
+  	// Calculate stats
+	const stats = {
+		completed: maintenance.filter((m) => m.status === 'COMPLETED').length,
+		scheduled: maintenance.filter((m) => m.status === 'SCHEDULED').length,
+		overdue: maintenance.filter((m) => m.status === 'OVERDUE').length,
+		skipped: maintenance.filter((m) => m.status === 'SKIPPED').length,
+	};
+
+  // ----------------------
   // Render No Car Selected Page
+  // ----------------------
   if (!selectedCar?.id) {
     return (
       <DashboardLayout>
@@ -201,7 +273,9 @@ const MaintenancePage = () => {
     );
   }
 
-  // Render Maintenance Page with Selected Car
+  // ----------------------
+  // Render Maintenance Page
+  // ----------------------
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gray-50">
@@ -224,6 +298,13 @@ const MaintenancePage = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-8 py-8">
+          {/* Services Due Row */}
+          <ServicesDueRow
+            services={servicesDue}
+            onComplete={handleComplete}
+            onSkip={handleSkip}
+          />
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatCard
@@ -242,8 +323,8 @@ const MaintenancePage = () => {
             />
             <StatCard
               title="Overdue"
-              count={stats.overdue}
-              subtitle={stats.overdue === 1 ? '1 overdue' : `${stats.overdue} overdue`}
+              count={Object.keys(servicesDue).length}
+              subtitle={stats.overdue === 1 ? '1 overdue' : `${Object.keys(servicesDue).length} overdue`}
               icon={AlertCircle}
               accentColor="#ef4444"
             />
@@ -297,6 +378,16 @@ const MaintenancePage = () => {
             </div>
           </div>
         </div>
+
+        {/* Complete Service Modal */}
+        {modalOpen && currentService && (
+          <CompleteServiceModal
+            service={currentService.service}
+            mileage={currentService.mileage}
+            onClose={() => setModalOpen(false)}
+            onSubmit={handleConfirmComplete}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
