@@ -8,7 +8,7 @@ export const maintenanceApi = {
 
     addToMaintenance: async (maintenanceData) => {
         const response = await api.post(`/maintenance/add`, maintenanceData);
-        return response.date;
+        return response.data;
     },
 
     findServices: async (carId, currMileage) => {
