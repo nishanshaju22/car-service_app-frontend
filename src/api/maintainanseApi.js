@@ -8,7 +8,6 @@ export const maintenanceApi = {
 
     addToMaintenance: async (maintenanceData) => {
         const response = await api.post(`/maintenance/add`, maintenanceData);
-        console.log(response)
         return response.data;
     },
 
@@ -16,5 +15,10 @@ export const maintenanceApi = {
         const response = await api.get(`/maintenance/find-services?id=${carId}&currMileage=${currMileage}`);
         return response.data;
     },
+
+    updateStatus: async (maintenanceData) => {
+        const response = await api.put("/maintenance/change-status", maintenanceData);
+        return response.data;
+    }
 
 };

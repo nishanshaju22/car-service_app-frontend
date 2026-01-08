@@ -2,92 +2,92 @@ import React from 'react';
 import { AlertCircle, CheckCircle2, Clock, Slash } from 'lucide-react';
 
 const MaintenanceTable = ({ maintenance, isLoading, error }) => {
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'COMPLETED':
-        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
-      case 'SCHEDULED':
-        return <Clock className="w-5 h-5 text-blue-600" />;
-      case 'OVERDUE':
-        return <AlertCircle className="w-5 h-5 text-red-600" />;
-      case 'SKIPPED':
-        return <Slash className="w-5 h-5 text-gray-600" />;
-      default:
-        return null;
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'COMPLETED':
+                return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+            case 'SCHEDULED':
+                return <Clock className="w-5 h-5 text-blue-600" />;
+            case 'OVERDUE':
+                return <AlertCircle className="w-5 h-5 text-red-600" />;
+            case 'SKIPPED':
+                return <Slash className="w-5 h-5 text-gray-600" />;
+            default:
+                return null;
+        }
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'COMPLETED':
+                return 'bg-green-50 text-green-700';
+            case 'SCHEDULED':
+                return 'bg-blue-50 text-blue-700';
+            case 'OVERDUE':
+                return 'bg-red-50 text-red-700';
+            case 'SKIPPED':
+                return 'bg-gray-50 text-gray-700';
+            default:
+                return 'bg-gray-50 text-gray-700';
+        }
+    };
+
+    const getPriorityColor = (priority) => {
+        switch (priority?.toLowerCase()) {
+            case 'critical':
+                return 'text-red-600 font-semibold';
+            case 'high':
+                return 'text-orange-600 font-semibold';
+            case 'medium':
+                return 'text-yellow-600 font-semibold';
+            case 'low':
+                return 'text-blue-600';
+            default:
+                return 'text-gray-600';
+        }
+    };
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-EU', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+        });
+    };
+
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />
+                ))}
+                </div>
+            </div>
+        );
     }
-  };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'COMPLETED':
-        return 'bg-green-50 text-green-700';
-      case 'SCHEDULED':
-        return 'bg-blue-50 text-blue-700';
-      case 'OVERDUE':
-        return 'bg-red-50 text-red-700';
-      case 'SKIPPED':
-        return 'bg-gray-50 text-gray-700';
-      default:
-        return 'bg-gray-50 text-gray-700';
+    if (error) {
+        return (
+            <div className="bg-white rounded-2xl border border-red-200 p-6">
+                <div className="text-center py-8">
+                <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                <p className="text-red-600 font-medium">Failed to load maintenance data</p>
+                <p className="text-red-500 text-sm mt-1">{error}</p>
+                </div>
+            </div>
+        );
     }
-  };
 
-  const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'critical':
-        return 'text-red-600 font-semibold';
-      case 'high':
-        return 'text-orange-600 font-semibold';
-      case 'medium':
-        return 'text-yellow-600 font-semibold';
-      case 'low':
-        return 'text-blue-600';
-      default:
-        return 'text-gray-600';
+    if (!maintenance || maintenance.length === 0) {
+        return (
+            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                <div className="text-center py-8">
+                <p className="text-gray-500 font-medium">No maintenance records found</p>
+                </div>
+            </div>
+        );
     }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white rounded-2xl border border-red-200 p-6">
-        <div className="text-center py-8">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-          <p className="text-red-600 font-medium">Failed to load maintenance data</p>
-          <p className="text-red-500 text-sm mt-1">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!maintenance || maintenance.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <div className="text-center py-8">
-          <p className="text-gray-500 font-medium">No maintenance records found</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -161,7 +161,7 @@ const MaintenanceTable = ({ maintenance, isLoading, error }) => {
                 </td>
                 <td className="px-6 py-4">
                   <p className="text-sm text-gray-900">
-                    {formatDate(item.serviceDate)}
+                    {formatDate(item.scheduledDate ? item.scheduledDate : item.serviceDate)}
                   </p>
                 </td>
                 <td className="px-6 py-4">
