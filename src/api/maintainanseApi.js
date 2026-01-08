@@ -17,4 +17,14 @@ export const maintenanceApi = {
         return response.data;
     },
 
+    getUpcomingServices: async (currMileage, amount = 2) => {
+        const response = await api.get(`/maintenance/upcoming-services`, {
+        params: {
+            currMileage,
+            amount,
+        },
+        });
+        return response.data;
+    },
+
 };
