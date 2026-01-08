@@ -9,6 +9,7 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import { useSelectedCar } from '../context/SelectedCarContext';
 import ServicesDueRow from '../components/ServicesDueRow';
 import CompleteServiceModal from '../components/CompleteServiceModal';
+import UpcomingServicesSection from '../components/UpcomingServicesSection';
 import useAutoCompleteScheduledMaintenance from '../hooks/useAutoCompleteScheduledMaintenance';
 
 const MaintenancePage = () => {
@@ -306,12 +307,20 @@ const MaintenancePage = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-8 py-8">
-          {/* Services Due Row */}
-          <ServicesDueRow
-            services={servicesDue}
-            onComplete={handleComplete}
-            onSkip={handleSkip}
-          />
+            {/* Services Due Row */}
+            <ServicesDueRow
+                services={servicesDue}
+                onComplete={handleComplete}
+                onSkip={handleSkip}
+            />
+
+            {/* Upcoming Services Section */}
+            <UpcomingServicesSection
+            carId={selectedCar.id}
+            currentMileage={selectedCar.currentMileage}
+            mileageUnit={selectedCar.mileageUnit}
+            />
+
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
