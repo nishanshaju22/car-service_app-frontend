@@ -10,6 +10,7 @@ import { useSelectedCar } from '../context/SelectedCarContext';
 import ServicesDueRow from '../components/ServicesDueRow';
 import CompleteServiceModal from '../components/CompleteServiceModal';
 import UpcomingServicesSection from '../components/UpcomingServicesSection';
+import useAutoCompleteScheduledMaintenance from '../hooks/useAutoCompleteScheduledMaintenance';
 
 const MaintenancePage = () => {
 	const navigate = useNavigate();
@@ -36,6 +37,11 @@ const MaintenancePage = () => {
 			fetchServices();
 		}
 	}, [selectedCar?.id]);
+
+	useAutoCompleteScheduledMaintenance(
+		maintenance,
+		selectedCar?.id
+	);
 
 	const fetchServices = async () => {
 		setLoading(true);

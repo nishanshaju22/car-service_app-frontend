@@ -1,24 +1,23 @@
-import React from 'react';
-import { MapPin, Calendar, Zap } from 'lucide-react';
+import { Calendar, Zap } from 'lucide-react';
 
 const MaintenanceCard = ({ maintenance, statusColor }) => {
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const getPriorityBadgeColor = (priority) => {
-    const colors = {
-      critical: 'bg-red-100 text-red-800',
-      high: 'bg-orange-100 text-orange-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      low: 'bg-blue-100 text-blue-800',
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
     };
-    return colors[priority?.toLowerCase()] || 'bg-gray-100 text-gray-800';
-  };
+
+    const getPriorityBadgeColor = (priority) => {
+        const colors = {
+            critical: 'bg-red-100 text-red-800',
+            high: 'bg-orange-100 text-orange-800',
+            medium: 'bg-yellow-100 text-yellow-800',
+            low: 'bg-blue-100 text-blue-800',
+        };
+        return colors[priority?.toLowerCase()] || 'bg-gray-100 text-gray-800';
+    };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
