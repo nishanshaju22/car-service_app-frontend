@@ -60,6 +60,7 @@ const DashboardPage = () => {
     const { selectedCar, setSelectedCar } = useSelectedCar();
     const [serviceColours, setServiceColours] = useState({});
     const [loadingColours, setLoadingColours] = useState(true);
+    const [serviceReasons, setServiceReasons] = useState({});
 
     useEffect(() => {
         fetchCars();
@@ -75,6 +76,7 @@ const DashboardPage = () => {
         setLoadingColours(true);
 
         const colourMap = {};
+        const reasonMap = {};
 
         for (const car of cars) {
             const result = await carApi.getColours(car.id);
@@ -92,9 +94,12 @@ const DashboardPage = () => {
                 default:
                     colourMap[car.id] = 'bg-gray-300';
             }
+
+            reasonMap[car.id] = result.reason || 'No service information';
         }
 
         setServiceColours(colourMap);
+        setServiceReasons(reasonMap);
         setLoadingColours(false);
     };
 
@@ -231,9 +236,30 @@ const DashboardPage = () => {
                                             overflow-hidden
                                         "
                                     >
-                                        <div
-                                            className={`absolute left-0 top-0 h-full w-2 ${serviceColours[car.id] || 'bg-gray-400'}`}
-                                        />
+                                        <div className="group absolute left-0 top-0 h-full w-2 cursor-help">
+                                            <div
+                                                className={`
+                                                    h-full w-full
+                                                    ${serviceColours[car.id] || 'bg-gray-400'}
+                                                    transition
+                                                    group-hover:brightness-110
+                                                    group-hover:shadow-[0_0_8px_rgba(0,0,0,0.25)]
+                                                `}
+                                            />
+
+                                            <div
+                                                className="
+                                                    absolute left-4 top-4
+                                                    hidden group-hover:block
+                                                    bg-black text-white text-xs
+                                                    px-2 py-1 rounded-md
+                                                    whitespace-nowrap
+                                                    z-50
+                                                "
+                                            >
+                                                {serviceReasons[car.id]}
+                                            </div>
+                                        </div>
 
                                         <div className="p-6">
 
