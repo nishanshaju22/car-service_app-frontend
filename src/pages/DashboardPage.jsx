@@ -27,6 +27,28 @@ function timeSincePurchase(purchaseDate) {
     return result;
 }
 
+async function getServiceStatus(carId) {
+
+    const result = await carApi.getColours(carId);
+
+    console.log(result.colour, carId)
+
+    switch (result.colour) {
+        case 'Red':
+            return 'bg-red-500';
+        case 'Yellow':
+            return 'bg-yellow-400';
+        case 'Green':
+        default:
+            return 'bg-gray-300';
+    }
+}
+
+// Map status to Tailwind color classes
+function getServiceColorClass(status) {
+    
+}
+
 const DashboardPage = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -36,10 +58,46 @@ const DashboardPage = () => {
     const [deleteModal, setDeleteModal] = useState({ show: false, carId: null, carName: '' });
     const [deleteLoading, setDeleteLoading] = useState(false);
     const { selectedCar, setSelectedCar } = useSelectedCar();
+    const [serviceColours, setServiceColours] = useState({});
+    const [loadingColours, setLoadingColours] = useState(true);
 
     useEffect(() => {
         fetchCars();
     }, []);
+
+    useEffect(() => {
+        if (cars.length > 0) {
+            fetchColours();
+        }
+    }, [cars]);
+
+    const fetchColours = async () => {
+        setLoadingColours(true);
+
+        const colourMap = {};
+
+        for (const car of cars) {
+            const result = await carApi.getColours(car.id);
+
+            switch (result.colour) {
+                case 'Red':
+                    colourMap[car.id] = 'bg-red-500';
+                    break;
+                case 'Yellow':
+                    colourMap[car.id] = 'bg-yellow-400';
+                    break;
+                case 'Green':
+                    colourMap[car.id] = 'bg-green-500';
+                    break;
+                default:
+                    colourMap[car.id] = 'bg-gray-300';
+            }
+        }
+
+        setServiceColours(colourMap);
+        setLoadingColours(false);
+    };
+
 
     const fetchCars = async () => {
         try {
@@ -111,14 +169,14 @@ const DashboardPage = () => {
 
                     <div className="max-w-7xl w-full">
                         {/* ===== Loading State ===== */}
-                        {loading && (
+                        {(loading || loadingColours) && (
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[#2C0703]" />
                             </div>
                         )}
 
                         {/* ===== Horizontal list ===== */}
-                        {!loading && (
+                        {!loading && !loadingColours && (
                             <div className="flex gap-8 overflow-x-auto scrollbar-hide pb-6">
                                 {/* ===== Empty State ===== */}
                                 {cars.length === 0 && (
@@ -159,141 +217,148 @@ const DashboardPage = () => {
                                         key={car.id}
                                         onClick={() => navigate(`/car/${car.id}`)}
                                         className="
-                                        w-[380px]
-                                        flex-shrink-0
-                                        snap-start
-                                        bg-white
-                                        rounded-3xl
-                                        p-6
-                                        border border-slate-200
-                                        shadow-md hover:shadow-lg transition
-                                        last:mr-24
-                                        relative
-                                        flex flex-col justify-between
-                                        cursor-pointer
+                                            w-[380px]
+                                            flex-shrink-0
+                                            snap-start
+                                            bg-white
+                                            rounded-3xl
+                                            border border-slate-200
+                                            shadow-md hover:shadow-lg transition
+                                            last:mr-24
+                                            relative
+                                            flex flex-col justify-between
+                                            cursor-pointer
+                                            overflow-hidden
                                         "
                                     >
-                                        {/* Top content */}
-                                        <div>
-                                        {/* Image */}
-                                        <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-6">
-                                            <img
-                                            src={car.img}
-                                            alt="Car"
-                                            className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
-                                        </div>
+                                        <div
+                                            className={`absolute left-0 top-0 h-full w-2 ${serviceColours[car.id] || 'bg-gray-400'}`}
+                                        />
 
-                                        {/* Header with Edit/Delete */}
-                                        <div className="mb-4 flex items-center justify-between">
+                                        <div className="p-6">
+
+                                            {/* Top content */}
                                             <div>
-                                            <h3 className="text-xl font-semibold text-slate-900">
-                                                {car.make}
-                                            </h3>
-                                            <h3>{car.model}</h3>
-                                            <p className="text-slate-500">({car.year})</p>
+                                            {/* Image */}
+                                            <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-6">
+                                                <img
+                                                src={car.img}
+                                                alt="Car"
+                                                className="w-full h-full object-cover"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
                                             </div>
 
-                                            <div className="flex flex-row gap-2 ml-4 mt-2">
-                                            {/* Delete */}
+                                            {/* Header with Edit/Delete */}
+                                            <div className="mb-4 flex items-center justify-between">
+                                                <div>
+                                                <h3 className="text-xl font-semibold text-slate-900">
+                                                    {car.make}
+                                                </h3>
+                                                <h3>{car.model}</h3>
+                                                <p className="text-slate-500">({car.year})</p>
+                                                </div>
+
+                                                <div className="flex flex-row gap-2 ml-4 mt-2">
+                                                {/* Delete */}
+                                                <button
+                                                    onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteClick(car);
+                                                    }}
+                                                    className="
+                                                    w-8 h-8
+                                                    bg-red-500 hover:bg-red-600
+                                                    rounded-xl
+                                                    flex items-center justify-center
+                                                    transition
+                                                    group
+                                                    "
+                                                    title="Delete car"
+                                                >
+                                                    <img
+                                                    src="src/assets/trash.jpg"
+                                                    alt="Delete"
+                                                    className="w-5 h-5 group-hover:hidden"
+                                                    />
+                                                    <img
+                                                    src="src/assets/trashOpen.jpg"
+                                                    alt="Delete"
+                                                    className="w-5 h-5 hidden group-hover:block"
+                                                    />
+                                                </button>
+
+                                                {/* Edit */}
+                                                <button
+                                                    onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/cars/edit/${car.id}`);
+                                                    }}
+                                                    className="
+                                                    w-8 h-8
+                                                    bg-green-600 hover:bg-green-800
+                                                    rounded-xl
+                                                    flex items-center justify-center
+                                                    transition
+                                                    "
+                                                    title="Edit car"
+                                                >
+                                                    <img
+                                                    src="src/assets/edit.png"
+                                                    alt="Edit"
+                                                    className="w-4 h-4"
+                                                    />
+                                                </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Accent */}
+                                            <div className="w-10 h-[2px] bg-[#2C0703] opacity-50 mb-4" />
+
+                                            {/* Details */}
+                                            <div className="grid grid-cols-2 gap-5 text-sm">
+                                                <div>
+                                                <p className="text-slate-500">Age since purchase</p>
+                                                <p className="font-medium text-slate-900">
+                                                    {timeSincePurchase(car.purchaseDate)}
+                                                </p>
+                                                </div>
+
+                                                <div>
+                                                <p className="text-slate-500">Next maintenance</p>
+                                                <p className="font-medium text-slate-900">
+                                                    Feb 15, 2026
+                                                </p>
+                                                </div>
+
+                                                <div className="col-span-2">
+                                                <p className="text-slate-500">Predicted mileage</p>
+                                                <p className="font-medium text-slate-900">
+                                                    {formatMileage(car.currentMileage, car.mileageUnit)}
+                                                </p>
+                                                </div>
+                                            </div>
+                                            </div>
+
+                                            {/* Select button */}
+                                            <div className="flex justify-center mt-4">
                                             <button
                                                 onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDeleteClick(car);
-                                                }}
-                                                className="
-                                                w-8 h-8
-                                                bg-red-500 hover:bg-red-600
-                                                rounded-xl
-                                                flex items-center justify-center
-                                                transition
-                                                group
-                                                "
-                                                title="Delete car"
-                                            >
-                                                <img
-                                                src="src/assets/trash.jpg"
-                                                alt="Delete"
-                                                className="w-5 h-5 group-hover:hidden"
-                                                />
-                                                <img
-                                                src="src/assets/trashOpen.jpg"
-                                                alt="Delete"
-                                                className="w-5 h-5 hidden group-hover:block"
-                                                />
-                                            </button>
-
-                                            {/* Edit */}
-                                            <button
-                                                onClick={(e) => {
-                                                e.stopPropagation();
-                                                navigate(`/cars/edit/${car.id}`);
-                                                }}
-                                                className="
-                                                w-8 h-8
-                                                bg-green-600 hover:bg-green-800
-                                                rounded-xl
-                                                flex items-center justify-center
-                                                transition
-                                                "
-                                                title="Edit car"
-                                            >
-                                                <img
-                                                src="src/assets/edit.png"
-                                                alt="Edit"
-                                                className="w-4 h-4"
-                                                />
-                                            </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Accent */}
-                                        <div className="w-10 h-[2px] bg-[#2C0703] opacity-50 mb-4" />
-
-                                        {/* Details */}
-                                        <div className="grid grid-cols-2 gap-5 text-sm">
-                                            <div>
-                                            <p className="text-slate-500">Age since purchase</p>
-                                            <p className="font-medium text-slate-900">
-                                                {timeSincePurchase(car.purchaseDate)}
-                                            </p>
-                                            </div>
-
-                                            <div>
-                                            <p className="text-slate-500">Next maintenance</p>
-                                            <p className="font-medium text-slate-900">
-                                                Feb 15, 2026
-                                            </p>
-                                            </div>
-
-                                            <div className="col-span-2">
-                                            <p className="text-slate-500">Predicted mileage</p>
-                                            <p className="font-medium text-slate-900">
-                                                {formatMileage(car.currentMileage, car.mileageUnit)}
-                                            </p>
-                                            </div>
-                                        </div>
-                                        </div>
-
-                                        {/* Select button */}
-                                        <div className="flex justify-center mt-4">
-                                        <button
-                                            onClick={(e) => {
-                                            e.stopPropagation();
-                                            selectedCar?.id === car.id
-                                                ? setSelectedCar(null)
-                                                : setSelectedCar(car);
-                                            }}
-                                            className={`py-2 w-32 rounded-xl font-medium transition
-                                            ${
                                                 selectedCar?.id === car.id
-                                                ? 'bg-indigo-600 text-white'
-                                                : 'bg-slate-200 text-slate-800'
-                                            }`}
-                                        >
-                                            {selectedCar?.id === car.id ? 'Selected' : 'Select'}
-                                        </button>
+                                                    ? setSelectedCar(null)
+                                                    : setSelectedCar(car);
+                                                }}
+                                                className={`py-2 w-32 rounded-xl font-medium transition
+                                                ${
+                                                    selectedCar?.id === car.id
+                                                    ? 'bg-indigo-600 text-white'
+                                                    : 'bg-slate-200 text-slate-800'
+                                                }`}
+                                            >
+                                                {selectedCar?.id === car.id ? 'Selected' : 'Select'}
+                                            </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
