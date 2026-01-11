@@ -25,4 +25,9 @@ export const carApi = {
         const response = await api.put(`/car/update/${carId}`, carData);
         return response.data;
     },
+
+    getColours: async (carId) => {
+        const response = await api.get(`/car/getColour?carId=${carId}`);
+        return response.data;
+    },
 };
