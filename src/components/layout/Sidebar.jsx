@@ -1,12 +1,15 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useSelectedCar } from '../../context/SelectedCarContext';
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { selectedCar, setSelectedCar } = useSelectedCar();
 
   const handleLogout = async () => {
+    setSelectedCar(null)
     await logout();
     navigate('/login');
   };

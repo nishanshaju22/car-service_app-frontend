@@ -22,31 +22,15 @@ function timeSincePurchase(purchaseDate) {
     if (years === 0 && months === 0) return 'Less than a month';
 
     let result = '';
-    if (years > 0) result += `${years} year${years > 1 ? 's' : ''}`;
-    if (months > 0) result += (years > 0 ? ', ' : '') + `${months} month${months > 1 ? 's' : ''}`;
-    return result;
-}
+    if (years > 0) {
+      result += `${years} year${years > 1 ? 's' : ''}`;  
+    } 
 
-async function getServiceStatus(carId) {
-
-    const result = await carApi.getColours(carId);
-
-    console.log(result.colour, carId)
-
-    switch (result.colour) {
-        case 'Red':
-            return 'bg-red-500';
-        case 'Yellow':
-            return 'bg-yellow-400';
-        case 'Green':
-        default:
-            return 'bg-gray-300';
+    if (months > 0) {
+        result += (years > 0 ? ', ' : '') + `${months} month${months > 1 ? 's' : ''}`;
     }
-}
 
-// Map status to Tailwind color classes
-function getServiceColorClass(status) {
-    
+    return result;
 }
 
 const DashboardPage = () => {
@@ -61,59 +45,37 @@ const DashboardPage = () => {
     const [serviceColours, setServiceColours] = useState({});
     const [loadingColours, setLoadingColours] = useState(true);
     const [serviceReasons, setServiceReasons] = useState({});
+    const [predictorModal, setPredictorModal] = useState({
+        show: false,
+        carId: null,
+    });
+
+    const [predictorForm, setPredictorForm] = useState({
+        daysRan: '',
+        mileageDiff: '',
+    });
+
+    const [predictorError, setPredictorError] = useState('');
 
     useEffect(() => {
         fetchCars();
     }, []);
 
-    useEffect(() => {
-        if (cars.length > 0) {
-            fetchColours();
-        }
-    }, [cars]);
-
-    const fetchColours = async () => {
-        setLoadingColours(true);
-
-        const colourMap = {};
-        const reasonMap = {};
-
-        for (const car of cars) {
-            const result = await carApi.getColours(car.id);
-
-            switch (result.colour) {
-                case 'Red':
-                    colourMap[car.id] = 'bg-red-500';
-                    break;
-                case 'Yellow':
-                    colourMap[car.id] = 'bg-yellow-400';
-                    break;
-                case 'Green':
-                    colourMap[car.id] = 'bg-green-500';
-                    break;
-                default:
-                    colourMap[car.id] = 'bg-gray-300';
-            }
-
-            reasonMap[car.id] = result.reason || 'No service information';
-        }
-
-        setServiceColours(colourMap);
-        setServiceReasons(reasonMap);
-        setLoadingColours(false);
-    };
-
-
     const fetchCars = async () => {
         try {
             setLoading(true);
+            setLoadingColours(true);
             const response = await carApi.getCars();
-            setCars(response || []);
+            console.log(response)
+            setCars(response.cars || []);
+            setServiceColours(response.colours);
+            setServiceReasons(response.reasons);
         } catch (err) {
             setError('Failed to load cars');
             console.error(err);
         } finally {
             setLoading(false);
+            setLoadingColours(false);
         }
     };
 
@@ -137,6 +99,40 @@ const DashboardPage = () => {
         } finally {
             setDeleteLoading(false);
         }
+    };
+
+    const openPredictorModal = (carId) => {
+        setPredictorModal({ show: true, carId });
+        setPredictorForm({ daysRan: '', mileageDiff: '' });
+        setPredictorError('');
+    };
+
+    const closePredictorModal = () => {
+        setPredictorModal({ show: false, carId: null });
+    };
+
+    const handlePredictorSubmit = () => {
+        const days = Number(predictorForm.daysRan);
+        const mileage = Number(predictorForm.mileageDiff);
+
+        if (days < 30) {
+            setPredictorError('Number of days must be greater than 30.');
+            return;
+        }
+
+        if (days <= 0 || mileage <= 0) {
+            setPredictorError('Please enter valid positive numbers.');
+            return;
+        }
+
+        // 👉 Placeholder for future API call
+        console.log('Mileage predictor added:', {
+            carId: predictorModal.carId,
+            days,
+            mileage,
+        });
+
+        closePredictorModal();
     };
 
     const formatMileage = (mileage, unit) => `${mileage?.toLocaleString() || 0} ${unit || 'km'}`;
@@ -240,7 +236,7 @@ const DashboardPage = () => {
                                             <div
                                                 className={`
                                                     h-full w-full
-                                                    ${serviceColours[car.id] || 'bg-gray-400'}
+                                                    bg-${serviceColours?.[car.id] || 'gray'}-500
                                                     transition
                                                     group-hover:brightness-110
                                                     group-hover:shadow-[0_0_8px_rgba(0,0,0,0.25)]
@@ -257,7 +253,7 @@ const DashboardPage = () => {
                                                     z-50
                                                 "
                                             >
-                                                {serviceReasons[car.id]}
+                                                {serviceReasons[car.id] || "No reason detected"}
                                             </div>
                                         </div>
 
@@ -357,12 +353,31 @@ const DashboardPage = () => {
                                                 </p>
                                                 </div>
 
-                                                <div className="col-span-2">
-                                                <p className="text-slate-500">Predicted mileage</p>
-                                                <p className="font-medium text-slate-900">
-                                                    {formatMileage(car.currentMileage, car.mileageUnit)}
-                                                </p>
+                                                <div className="col-span-2 flex items-end justify-between">
+                                                <div>
+                                                    <p className="text-slate-500">Predicted mileage</p>
+                                                    <p className="font-medium text-slate-900">
+                                                        {formatMileage(car.currentMileage, car.mileageUnit)}
+                                                    </p>
                                                 </div>
+
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openPredictorModal(car.id);
+                                                    }}
+                                                    className="
+                                                        px-4 py-2
+                                                        rounded-xl
+                                                        text-sm font-medium
+                                                        bg-slate-900 text-white
+                                                        hover:bg-slate-800
+                                                        transition
+                                                    "
+                                                >
+                                                    Add Predictor
+                                                </button>
+                                            </div>
                                             </div>
                                             </div>
 
@@ -440,6 +455,74 @@ const DashboardPage = () => {
                         </div>
                     </div>
                 )}
+
+                {predictorModal.show && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+                            <h3 className="text-2xl font-bold text-slate-900 mb-4 text-center">
+                                Add Mileage Predictor
+                            </h3>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                                        Days Ran
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={predictorForm.daysRan}
+                                        onChange={(e) =>
+                                            setPredictorForm({
+                                                ...predictorForm,
+                                                daysRan: e.target.value,
+                                            })
+                                        }
+                                        className="w-full rounded-xl border border-slate-300 px-3 py-2"
+                                        placeholder="Must be greater than 30"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                                        Mileage Difference
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={predictorForm.mileageDiff}
+                                        onChange={(e) =>
+                                            setPredictorForm({
+                                                ...predictorForm,
+                                                mileageDiff: e.target.value,
+                                            })
+                                        }
+                                        className="w-full rounded-xl border border-slate-300 px-3 py-2"
+                                        placeholder="e.g. 1200 km"
+                                    />
+                                </div>
+
+                                {predictorError && (
+                                    <p className="text-red-600 text-sm">{predictorError}</p>
+                                )}
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={closePredictorModal}
+                                    className="flex-1 px-4 py-3 bg-slate-100 rounded-xl hover:bg-slate-200 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handlePredictorSubmit}
+                                    className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
             </div>
         </DashboardLayout>
     );

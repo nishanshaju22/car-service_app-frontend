@@ -63,7 +63,7 @@ const MaintenancePage = () => {
 		setCarsError('');
 		try {
 			const data = await carApi.getCars();
-			setCars(Array.isArray(data) ? data : []);
+			setCars(Array.isArray(data.cars) ? data.cars : []);
 		} catch (err) {
 			setCarsError(err.response?.data?.error || 'Failed to fetch cars');
 			setCars([]);
