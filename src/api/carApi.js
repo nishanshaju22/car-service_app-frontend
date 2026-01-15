@@ -6,6 +6,11 @@ export const carApi = {
         return response.data;
     },
 
+    addPredictor: async (carData) => {
+        const response = await api.post('/car/add-predictor', carData);
+        return response.data;
+    },
+
     getCars: async () => {
         const response = await api.get('/car/details');
         return response.data;
