@@ -125,11 +125,11 @@ const DashboardPage = () => {
             return;
         }
 
-        // 👉 Placeholder for future API call
-        console.log('Mileage predictor added:', {
+        const predictor = Math.floor(mileage / days);
+
+        carApi.addPredictor({
             carId: predictorModal.carId,
-            days,
-            mileage,
+            predictor: predictor
         });
 
         closePredictorModal();
