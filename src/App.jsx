@@ -10,6 +10,7 @@ import EditCarPage from './pages/EditCarPage';
 import ServiceCentersPage from './pages/ServiceCentersPage';
 import MaintenancePage from './pages/MaintenancePage';
 import CarInfoPage from './pages/CarInfoPage';
+import CarIssuesPage from './pages/CarIssuesPage';
 
 
 function App() {
@@ -58,6 +59,12 @@ function App() {
         <Route path="/maintenance" element={
             <ProtectedRoute>
               <MaintenancePage />
+            </ProtectedRoute> 
+          } 
+        />
+        <Route path="/cars" element={
+            <ProtectedRoute>
+              <CarIssuesPage />
             </ProtectedRoute> 
           } 
         />
