@@ -353,11 +353,17 @@ const DashboardPage = () => {
                                                 </p>
                                                 </div>
 
-                                                <div className="col-span-2 flex items-end justify-between">
+                                                <div className="col-span-2 flex items-end gap-6">
                                                 <div>
                                                     <p className="text-slate-500">Predicted mileage</p>
                                                     <p className="font-medium text-slate-900">
                                                         {formatMileage(car.currentMileage, car.mileageUnit)}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-slate-500"> {car.predictor ? 'Predicted mileage' : ''} </p>
+                                                    <p className="font-medium text-slate-900">
+                                                        {car.predictor ? `${car.predictor} km / day` : ''}
                                                     </p>
                                                 </div>
 
@@ -368,14 +374,20 @@ const DashboardPage = () => {
                                                     }}
                                                     className="
                                                         px-4 py-2
-                                                        rounded-xl
+                                                        rounded-full
                                                         text-sm font-medium
                                                         bg-slate-900 text-white
                                                         hover:bg-slate-800
                                                         transition
+                                                        flex items-center justify-center
                                                     "
+                                                    aria-label="Add predictor"
                                                 >
-                                                    Add Predictor
+                                                    {car.predictor ? (
+                                                        <span className="text-base leading-3">+</span>
+                                                    ) : (
+                                                        'Add Predictor'
+                                                    )}
                                                 </button>
                                             </div>
                                             </div>
